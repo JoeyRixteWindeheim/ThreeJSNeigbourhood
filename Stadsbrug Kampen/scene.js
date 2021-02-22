@@ -1,5 +1,5 @@
 import * as THREE from './three/three.js';
-
+/*
 // Select canvas element from HTML.
 const canvas = document.querySelector('#mainCanvas');
 
@@ -53,7 +53,7 @@ function main() {
     ];
 
     const openableBridgeParts = [
-        makeCube(openableBridgePart, 0xaa4488, 60)
+        makeCube(openableBridgePart, 0xaa4488, 60),
         makeCube(openableBridgeP)
     ]
 
@@ -88,3 +88,129 @@ function DoCameraMovement(){
 }
 
 main();
+*/
+
+
+
+function main() {
+    const canvas = document.querySelector('#mainCanvas');
+    const renderer = new THREE.WebGLRenderer({canvas});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+
+    canvas.parentElement.addEventListener('keydown', onKeypress);
+
+    var open = true;
+    var bridgeY = 0;
+
+    function onKeypress(e) {
+        if(e.code == "KeyO") //o
+        {
+            open = true;
+            //open
+        }
+        if(e.code == "KeyC") //c
+        {
+            open = false;
+            //close
+        }
+
+    }
+  
+    const fov = 75;
+    const aspect = 2;  // the canvas default
+    const near = 0.1;
+    const far = 100;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.z = 20;
+    camera.position.y = 5;
+    
+  
+    const scene = new THREE.Scene();
+  
+    {
+      const color = 0xFFFFFF;
+      const intensity = 1;
+      const light = new THREE.DirectionalLight(color, intensity);
+      light.position.set(-1, 2, 4);
+      scene.add(light);
+    }
+  
+    const boxWidth = 1;
+    const boxHeight = 1;
+    const boxDepth = 1;
+    const box = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+
+    const brugdekGeo =  new THREE.BoxGeometry(15, 1, 10);
+  
+    function makeInstance(geometry, color, x) {
+      const material = new THREE.MeshPhongMaterial({color});
+  
+      const cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+  
+      cube.position.x = x;
+  
+      return cube;
+    }
+    
+    const cubes = [
+      //makeInstance(brugdekGeo, 0xffffff,  0),
+      //makeInstance(box, 0x8844aa, -2),
+      //makeInstance(box, 0xaa8844,  2),
+    ];
+
+    const brugdekMidden = makeInstance(brugdekGeo, 0xffffff,  0)
+
+    const brugdekLinks = makeInstance(brugdekGeo, 0xffffff,  0)
+    brugdekLinks.position.x = -15;
+
+    const brugdekRechts = makeInstance(brugdekGeo, 0xffffff,  0)
+    brugdekRechts.position.x = 15;
+
+    var timeLastUpdate = 0;
+  
+    function render(time) {
+      time *= 0.001;  // convert time to seconds
+      const timepassed = time - timeLastUpdate;
+      timeLastUpdate = time;
+
+    
+
+      cubes.forEach((cube, ndx) => {
+        const speed = 1 + ndx * .1;
+        const rot = time * speed;
+        cube.rotation.x = rot;
+        cube.rotation.y = rot;
+
+
+        cube.position.y = Math.sin(time);
+      });
+
+      if(open == true && bridgeY < 5)
+      {
+        bridgeY += timepassed;
+        if(bridgeY > 5){
+            bridgeY = 5;
+        }
+        brugdekMidden.position.y = bridgeY;
+      }
+      if(open == false && bridgeY > 0)
+      {
+        bridgeY -= timepassed;
+        if(bridgeY < 0){
+            bridgeY = 0;
+        }
+        brugdekMidden.position.y = bridgeY;
+      }
+  
+      renderer.render(scene, camera);
+  
+      requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+  
+  }
+  
+  main();
