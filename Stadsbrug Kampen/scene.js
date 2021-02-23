@@ -1,59 +1,142 @@
-import * as THREE from './three/three.js';
+import * as THREE from './three/build/three.module.js';
+import { OrbitControls } from './three/examples/jsm/controls/OrbitControls.js';
 
 function main() {
-
     const canvas = document.querySelector('#mainCanvas');
-    const renderer = new THREE.WebGLRenderer({canvas});
+    const renderer = new THREE.WebGLRenderer({ canvas });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-
-    canvas.parentElement.addEventListener('keydown', onKeypress);
-
-    var open = true;
-    var bridgeY = 0;
-
-    function onKeypress(e) {
-        if(e.code == "KeyO") //o
-        {
-            open = true;
-            //open
-        }
-        if(e.code == "KeyC") //c
-        {
-            open = false;
-            //close
-        }
-
-    }
-  
     const fov = 75;
     const aspect = 2;  // the canvas default
     const near = 0.1;
     const far = 200;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.position.z = 50;
-    camera.position.y = 10;
-    
-  
+    camera.position.y = 5;
+
+    canvas.parentElement.addEventListener('keydown', onKeypress);
+
     const scene = new THREE.Scene();
-  
-    {
-      const color = 0xFFFFFF;
-      const intensity = 1;
-      const light = new THREE.DirectionalLight(color, intensity);
-      light.position.set(-1, 2, 4);
-      scene.add(light);
+
+    const color = 0xFFFFFF;
+    const intensity = 1;
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(-1, 2, 4);
+    scene.add(light);
+
+
+
+    // Bridge open/close variables
+    var open = true;
+    var bridgeY = 0;
+
+    //Player movement
+    let playerForwardDirection = 0; // -1 is backward, 1 is forward, 0 is neither
+    let playerSidewaysDirection = 0; // -1 is left, 1 is right, 0 is neither
+    let playerUpwardsDirection = 0; // -1 is down, 1 is up, 0 is neither
+    const playerMovementSpeed = 1;
+
+    // Keypress actions
+    function onKeypress(e) {
+        /// bridge controls
+        // o = open, c = close
+        if (e.code == "KeyO") //o
+        {
+            open = true;
+            //open
+        }
+        if (e.code == "KeyC") //c
+        {
+            open = false;
+            //close
+        }
+
+        /// player movement
+        // Prioritise forwards over backwards
+        if (e.code == "KeyW") {
+            playerForwardDirection = -1;
+        }
+        else if (e.code == "KeyS") {
+            playerForwardDirection = 1;
+        }
+
+        // prioritise right over left
+        if (e.code == "KeyD") {
+            playerSidewaysDirection = 1;
+        }
+        else if (e.code == "KeyA") {
+            playerSidewaysDirection = -1;
+        }
+
+        // prioritise up over down
+        // prioritise right over left
+        if (e.code == "KeyE") {
+            playerUpwardsDirection = 1;
+        }
+        else if (e.code == "KeyQ") {
+            playerUpwardsDirection = -1;
+        }
     }
 
-    
 
-  
+    function playerCameraMovement() {
+
+        // forwards/backwards movement
+        if (playerForwardDirection === 1) {
+            camera.translateZ(playerMovementSpeed)
+        }
+        else if (playerForwardDirection === -1) {
+            camera.translateZ(-1 * playerMovementSpeed);
+        }
+
+        // sideways movement
+        // to the right
+        if (playerSidewaysDirection === 1) {
+            camera.translateX(playerMovementSpeed);
+        }
+        // to the left
+        else if (playerSidewaysDirection === -1) {
+            camera.translateX(-1 * playerMovementSpeed);
+        }
+
+        // upwards/downwards movement
+        // upwards, no upper bounds
+        if (playerUpwardsDirection === 1) {
+            camera.translateY(playerMovementSpeed);
+        }
+        // downwards
+        else if ((playerUpwardsDirection === -1)) {
+            camera.translateY(-1 * playerMovementSpeed);
+        }
+
+        // fixate camera position to not go through bridge
+        if (camera.position.y < 1) {
+            camera.position.y = 1;
+        }
+
+        playerForwardDirection = 0; // -1 is backward, 1 is forward, 0 is neither
+        playerSidewaysDirection = 0; // -1 is left, 1 is right, 0 is neither
+        playerUpwardsDirection = 0; // -1 is down, 1 is up, 0 is neither
+    }
 
 
 
 
-  
-    const brugdekGeo =  new THREE.BoxGeometry(30, 1, 20);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const brugdekGeo = new THREE.BoxGeometry(30, 1, 20);
     const RoadRailing = new THREE.BoxGeometry(30, 2, 0.2);
     const sidewalk = new THREE.BoxGeometry(30, 0.2, 2);
     const sidewalkRailer = new THREE.BoxGeometry(30, 1, 0.1);
@@ -63,126 +146,119 @@ function main() {
 
     //const gewicht = new THREE.BoxGeometry(2, 2, 4);
 
-    const wheel = new THREE.CylinderGeometry(1.1,1.1,0.2,10);
+    const wheel = new THREE.CylinderGeometry(1.1, 1.1, 0.2, 10);
 
-    const cabel = new THREE.CylinderGeometry(0.05,0.05,1,6);
+    const cabel = new THREE.CylinderGeometry(0.05, 0.05, 1, 6);
 
     var shape = new THREE.Shape();
-        shape.moveTo( 0,0 );
-        shape.lineTo( 0, 2 );
-        shape.lineTo( 2, 0 );
-        shape.lineTo( 0, 0 );
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 2);
+    shape.lineTo(2, 0);
+    shape.lineTo(0, 0);
 
     var extrudeSettings = {
-      steps: 2,
-      amount: 2,
-      bevelEnabled: false,
-    };			
+        steps: 2,
+        amount: 2,
+        bevelEnabled: false,
+    };
 
-    var prism = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+    var prism = new THREE.ExtrudeGeometry(shape, extrudeSettings);
 
 
-    const gewicht = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+    const gewicht = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     gewicht.scale.x = 2;
     gewicht.scale.y = 2;
     gewicht.scale.z = 4;
 
-    class BrugdekOnderdeel
-    {
-        constructor(x,y,z){
-            this.road = makeInstance(brugdekGeo, 0xffffff,  x,y,z);
-            this.roadRailingLeft = makeInstance(RoadRailing, 0xffffff,  x, y+1.5 , z - 10);
-            this.roadRailingRight = makeInstance(RoadRailing, 0xffffff,  x, y+1.5 , z + 10);
-            this.sidewalkRight = makeInstance(sidewalk, 0xffffff,  x, y-0.4 , z + 11);
-            this.sidewalkLeft = makeInstance(sidewalk, 0xffffff,  x, y-0.4 , z - 11);
-            this.sidwalkRailingLeft = makeInstance(sidewalkRailer, 0xffffff,  x, y , z - 12);
-            this.sidwalkRailingRight = makeInstance(sidewalkRailer, 0xffffff,  x, y , z + 12);
+    class BrugdekOnderdeel {
+        constructor(x, y, z) {
+            this.road = makeInstance(brugdekGeo, 0xffffff, x, y, z);
+            this.roadRailingLeft = makeInstance(RoadRailing, 0xffffff, x, y + 1.5, z - 10);
+            this.roadRailingRight = makeInstance(RoadRailing, 0xffffff, x, y + 1.5, z + 10);
+            this.sidewalkRight = makeInstance(sidewalk, 0xffffff, x, y - 0.4, z + 11);
+            this.sidewalkLeft = makeInstance(sidewalk, 0xffffff, x, y - 0.4, z - 11);
+            this.sidwalkRailingLeft = makeInstance(sidewalkRailer, 0xffffff, x, y, z - 12);
+            this.sidwalkRailingRight = makeInstance(sidewalkRailer, 0xffffff, x, y, z + 12);
         }
 
-        SetY(y){
+        SetY(y) {
             this.road.position.y = y;
-            this.roadRailingLeft.position.y = y+1.5;
-            this.roadRailingRight.position.y = y+1.5;
-            this.sidewalkRight.position.y = y-0.4;
-            this.sidewalkLeft.position.y = y-0.4;
+            this.roadRailingLeft.position.y = y + 1.5;
+            this.roadRailingRight.position.y = y + 1.5;
+            this.sidewalkRight.position.y = y - 0.4;
+            this.sidewalkLeft.position.y = y - 0.4;
             this.sidwalkRailingLeft.position.y = y;
             this.sidwalkRailingRight.position.y = y;
         }
     }
 
-    class Brugtoren
-    {
-        constructor(x,y,z,dir){
-            this.NOpilaar = makeInstance(pilaar, 0xffffff,  x+0.8, y+2.5 , z-0.8);
-            this.NWpilaar = makeInstance(pilaar, 0xffffff,  x-0.8, y+2.5 , z-0.8);
-            this.ZOpilaar = makeInstance(pilaar, 0xffffff,  x+0.8, y+2.5 , z+0.8);
-            this.ZWpilaar = makeInstance(pilaar, 0xffffff,  x-0.8, y+2.5 , z+0.8);
+    class Brugtoren {
+        constructor(x, y, z, dir) {
+            this.NOpilaar = makeInstance(pilaar, 0xffffff, x + 0.8, y + 2.5, z - 0.8);
+            this.NWpilaar = makeInstance(pilaar, 0xffffff, x - 0.8, y + 2.5, z - 0.8);
+            this.ZOpilaar = makeInstance(pilaar, 0xffffff, x + 0.8, y + 2.5, z + 0.8);
+            this.ZWpilaar = makeInstance(pilaar, 0xffffff, x - 0.8, y + 2.5, z + 0.8);
 
-            this.dwarsOnder = new PilaarDwarsBalken(x,2.7,z);
-            this.dwarsMiden = new PilaarDwarsBalken(x,6.25,z);
-            this.dwarsBoven = new PilaarDwarsBalken(x,9.8,z);
+            this.dwarsOnder = new PilaarDwarsBalken(x, 2.7, z);
+            this.dwarsMiden = new PilaarDwarsBalken(x, 6.25, z);
+            this.dwarsBoven = new PilaarDwarsBalken(x, 9.8, z);
 
-            this.wielen = new BrugTorenWielen(x,11.2,z)
+            this.wielen = new BrugTorenWielen(x, 11.2, z)
 
-            this.gewicht = makeInstance(gewicht, 0xffffff,  x+ 2*dir -1 , 9 -1 , z -2);
+            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1, 9 - 1, z - 2);
 
-            this.Ngewichtkabel = new kabel ( x + 1.1*dir, 0, z+0.9)
-            this.Zgewichtkabel = new kabel ( x + 1.1*dir, 0, z-0.9)
+            this.Ngewichtkabel = new kabel(x + 1.1 * dir, 0, z + 0.9)
+            this.Zgewichtkabel = new kabel(x + 1.1 * dir, 0, z - 0.9)
 
-            this.Ndekkabel = new kabel ( x + -1.1*dir, 0, z+0.9)
-            this.Zdekkabel = new kabel ( x + -1.1*dir, 0, z-0.9)
+            this.Ndekkabel = new kabel(x + -1.1 * dir, 0, z + 0.9)
+            this.Zdekkabel = new kabel(x + -1.1 * dir, 0, z - 0.9)
 
         }
 
-        setGewichtKabel(bottom){
-            this.Ngewichtkabel.setLength(11.2,bottom);
-            this.Zgewichtkabel.setLength(11.2,bottom);
+        setGewichtKabel(bottom) {
+            this.Ngewichtkabel.setLength(11.2, bottom);
+            this.Zgewichtkabel.setLength(11.2, bottom);
         }
 
-        setDekKabel(bottom){
-            this.Ndekkabel.setLength(11.2,bottom);
-            this.Zdekkabel.setLength(11.2,bottom);
+        setDekKabel(bottom) {
+            this.Ndekkabel.setLength(11.2, bottom);
+            this.Zdekkabel.setLength(11.2, bottom);
         }
     }
 
-    class kabel
-    {
-        constructor(x,y,z)
-        {
+    class kabel {
+        constructor(x, y, z) {
             this.k = makeInstance(cabel, 0x888888, x, y, z)
         }
 
-        setLength(top,bottom)
-        {
-            this.k.scale.y = top-bottom;
-            this.k.position.y = (top-bottom)/2+bottom;
+        setLength(top, bottom) {
+            this.k.scale.y = top - bottom;
+            this.k.position.y = (top - bottom) / 2 + bottom;
         }
 
     }
 
-    class PilaarDwarsBalken
-    {
-        constructor(x,y,z){
-            this.Nbalk = makeInstance(dwarsbalk, 0xffffff,  x, y , z-0.8);
+    class PilaarDwarsBalken {
+        constructor(x, y, z) {
+            this.Nbalk = makeInstance(dwarsbalk, 0xffffff, x, y, z - 0.8);
             this.Nbalk.rotateY(1.5708);
-            this.Zbalk = makeInstance(dwarsbalk, 0xffffff,  x, y , z+0.8);
+            this.Zbalk = makeInstance(dwarsbalk, 0xffffff, x, y, z + 0.8);
             this.Zbalk.rotateY(1.5708);
 
-            this.Obalk = makeInstance(dwarsbalk, 0xffffff,  x+0.8, y , z);
-            this.Wbalk = makeInstance(dwarsbalk, 0xffffff,  x-0.8, y , z);
+            this.Obalk = makeInstance(dwarsbalk, 0xffffff, x + 0.8, y, z);
+            this.Wbalk = makeInstance(dwarsbalk, 0xffffff, x - 0.8, y, z);
         }
     }
 
-    class Bruggewichten
-    {
-        constructor(){
-            this.no = makeInstance(gewicht, 0xffffff,  18, 9 , -11);
-            this.nw = makeInstance(gewicht, 0xffffff,  -18, 9 , -11);
-            this.zo = makeInstance(gewicht, 0xffffff,  18, 9 , 11);
-            this.zw = makeInstance(gewicht, 0xffffff,  -18, 9 , 11);
+    class Bruggewichten {
+        constructor() {
+            this.no = makeInstance(gewicht, 0xffffff, 18, 9, -11);
+            this.nw = makeInstance(gewicht, 0xffffff, -18, 9, -11);
+            this.zo = makeInstance(gewicht, 0xffffff, 18, 9, 11);
+            this.zw = makeInstance(gewicht, 0xffffff, -18, 9, 11);
         }
 
-        SetY(y){
+        SetY(y) {
             this.no.position.y = y;
             this.nw.position.y = y;
             this.zo.position.y = y;
@@ -190,41 +266,39 @@ function main() {
         }
     }
 
-    class BrugTorenWielen
-    {
-        constructor(x,y,z){
-            this.links = makeInstance(wheel, 0xffff00,  x, 11.2 ,z-0.9 );
-            this.rechts = makeInstance(wheel, 0xffff00,  x, 11.2 ,z+0.9 );
+    class BrugTorenWielen {
+        constructor(x, y, z) {
+            this.links = makeInstance(wheel, 0xffff00, x, 11.2, z - 0.9);
+            this.rechts = makeInstance(wheel, 0xffff00, x, 11.2, z + 0.9);
             this.links.rotateX(1.5708);
             this.rechts.rotateX(1.5708);
-            
+
         }
 
-        Rotate(time){
+        Rotate(time) {
             this.links.rotateY(time);
             this.rechts.rotateY(time)
         }
     }
 
-    class Torens
-    {
-        constructor(){
-            this.noToren = new Brugtoren(16,0,-11,1);
-            this.nwToren = new Brugtoren(-16,0,-11,-1);
-            this.zoToren = new Brugtoren(16,0,11,1);
-            this.zwToren = new Brugtoren(-16,0,11,-1);
+    class Torens {
+        constructor() {
+            this.noToren = new Brugtoren(16, 0, -11, 1);
+            this.nwToren = new Brugtoren(-16, 0, -11, -1);
+            this.zoToren = new Brugtoren(16, 0, 11, 1);
+            this.zwToren = new Brugtoren(-16, 0, 11, -1);
         }
 
-        moveWeights(y){
-            this.noToren.gewicht.position.y = 9-y;
-            this.nwToren.gewicht.position.y = 9-y; 
-            this.zoToren.gewicht.position.y = 9-y;
-            this.zwToren.gewicht.position.y = 9-y;
+        moveWeights(y) {
+            this.noToren.gewicht.position.y = 9 - y;
+            this.nwToren.gewicht.position.y = 9 - y;
+            this.zoToren.gewicht.position.y = 9 - y;
+            this.zwToren.gewicht.position.y = 9 - y;
 
-            this.noToren.setGewichtKabel(9-y);
-            this.nwToren.setGewichtKabel(9-y);
-            this.zoToren.setGewichtKabel(9-y);
-            this.zwToren.setGewichtKabel(9-y);
+            this.noToren.setGewichtKabel(9 - y);
+            this.nwToren.setGewichtKabel(9 - y);
+            this.zoToren.setGewichtKabel(9 - y);
+            this.zwToren.setGewichtKabel(9 - y);
 
             this.noToren.setDekKabel(y);
             this.nwToren.setDekKabel(y);
@@ -232,7 +306,7 @@ function main() {
             this.zwToren.setDekKabel(y);
         }
 
-        moveWheels(time){
+        moveWheels(time) {
             this.noToren.wielen.Rotate(time);
             this.nwToren.wielen.Rotate(-time);
             this.zoToren.wielen.Rotate(time);
@@ -240,70 +314,120 @@ function main() {
         }
     }
 
-    function makeInstance(geometry, color, x,y,z) {
-      const material = new THREE.MeshPhongMaterial({color});
-  
-      const cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
-  
-      cube.position.x = x;
-      cube.position.y = y;
-      cube.position.z = z;
-  
-      return cube;
-    }
-    
 
-    const brugdekMidden = new BrugdekOnderdeel(0,0,0);
-    const brugdekLinks = new BrugdekOnderdeel(-30,0,0);
-    const brugdekRechts = new BrugdekOnderdeel(30,0,0);
+    // helper for loading external images
+    const loader = new THREE.CubeTextureLoader();
+    const skybox = loader.load([
+        'resources/images/skybox1.png',
+        'resources/images/skybox2.png',
+        'resources/images/skybox3.png',
+        'resources/images/skybox3.png',
+        'resources/images/skybox4.png',
+        'resources/images/skybox5.png',
+    ]);
+    scene.background = skybox;
+
+    const boxWidth = 1;
+    const boxHeight = 1;
+    const boxDepth = 1;
+    const box = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+
+
+    function makeInstance(geometry, color, x, y, z) {
+        const material = new THREE.MeshPhongMaterial({ color });
+
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        cube.position.x = x;
+        cube.position.y = y;
+        cube.position.z = z;
+
+        return cube;
+    }
+
+
+    const brugdekMidden = new BrugdekOnderdeel(0, 0, 0);
+    const brugdekLinks = new BrugdekOnderdeel(-30, 0, 0);
+    const brugdekRechts = new BrugdekOnderdeel(30, 0, 0);
 
     const torens = new Torens();
-    
+
 
     //const gewichten = new Bruggewichten();
 
-    
+
 
     const openDistance = 5;
 
-    var timeLastUpdate = 0;
-  
-    function render(time) {
-      time *= 0.001;  // convert time to seconds
-      const timepassed = time - timeLastUpdate;
-      timeLastUpdate = time;
+    const mainRiver = makeInstance(new THREE.BoxGeometry(210, 1, 400), 0x086ca6, 0);
+    mainRiver.position.y = -5;
 
-      if(open == true && bridgeY < openDistance)
-      {
-        bridgeY += timepassed;
-        if(bridgeY > openDistance){
-            bridgeY = openDistance;
+
+
+    var timeLastUpdate = 0;
+
+
+    // setup for orbital controls
+    const controls = new OrbitControls(camera, canvas);
+
+    // Also prevents the canvas from stretching the
+    function updateCanvasToFitScreen() {
+        // Re-get canvas every time to update width/height
+        const canvas = document.querySelector('#mainCanvas');
+        // Canvas instead of window width and height to prevent stretching the image. This preserves aspect ratio!
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = (canvas.width !== width) || (canvas.height !== height);
+        if (needResize) {
+            // set width and height of canvas element
+            renderer.setSize(width, height, false);
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
         }
-        brugdekMidden.SetY(bridgeY);
-        torens.moveWeights(bridgeY);
-        torens.moveWheels(-timepassed);
-      }
-      if(open == false && bridgeY > 0)
-      {
-        bridgeY -= timepassed;
-        if(bridgeY < 0){
-            bridgeY = 0;
+    }
+
+    function render(time) {
+        time *= 0.001;  // convert time to seconds
+        const timepassed = time - timeLastUpdate;
+        timeLastUpdate = time;
+
+        // Responsive design -- changes according to screen height/width
+        updateCanvasToFitScreen();
+
+        // move camera if wasd/qe is pressed
+        playerCameraMovement();
+
+
+        if (open == true && bridgeY < 5) {
+            bridgeY += timepassed;
+            if (bridgeY > openDistance) {
+                bridgeY = openDistance;
+            }
+            brugdekMidden.SetY(bridgeY);
+            torens.moveWeights(bridgeY);
+            torens.moveWheels(-timepassed);
         }
-        brugdekMidden.SetY(bridgeY);
-        torens.moveWeights(bridgeY);
-        torens.moveWheels(timepassed);
-      }
-  
-      renderer.render(scene, camera);
-  
-      requestAnimationFrame(render);
+        if (open == false && bridgeY > 0) {
+            bridgeY -= timepassed;
+            if (bridgeY < 0) {
+                bridgeY = 0;
+            }
+            brugdekMidden.SetY(bridgeY);
+            torens.moveWeights(bridgeY);
+            torens.moveWheels(timepassed);
+        }
+
+        renderer.render(scene, camera);
+
+        requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
-  
-  }
-  
-  main();
+
+
+}
+main();
 
 
 
