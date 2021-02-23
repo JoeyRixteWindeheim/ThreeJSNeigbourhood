@@ -182,7 +182,7 @@ function main() {
     const gewicht = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     gewicht.scale.x = 2;
     gewicht.scale.y = 2;
-    gewicht.scale.z = 4;
+    gewicht.scale.z = 6;
 
     class BrugdekOnderdeel {
         constructor(x, y, z) {
@@ -219,7 +219,7 @@ function main() {
 
             this.wielen = new BrugTorenWielen(x, 11.2, z)
 
-            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1, 9 - 1, z - 2);
+            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1, 9 - 1, z -1);
 
             this.Ngewichtkabel = new kabel(x + 1.1 * dir, 0, z + 0.9)
             this.Zgewichtkabel = new kabel(x + 1.1 * dir, 0, z - 0.9)
