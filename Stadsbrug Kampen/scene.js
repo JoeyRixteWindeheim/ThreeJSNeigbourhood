@@ -1,98 +1,7 @@
 import * as THREE from './three/three.js';
-/*
-// Select canvas element from HTML.
-const canvas = document.querySelector('#mainCanvas');
-
-// Create renderer
-const renderer = new THREE.WebGLRenderer({canvas});
-
-// Create scene
-var scene = new THREE.Scene();
-
-// Create camera
-var camera = new THREE.PerspectiveCamera(
-    90,     // fov - Camera frustum vertical field of view.
-    // aspect - Camera frustum aspect ratio, but without stretching to fit the screen
-    window.innerWidth / window.innerHeight,
-
-    0.1,   // near - Camera frustum near plane
-    1000); // far - Camera frustum far plane
-
-
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-camera.position.z = 2;
-
-
-function makeCube(geometry, color, x) {
-    const material = new THREE.MeshPhongMaterial({color});
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-
-    cube.position.x = x;
-    return cube;
-}
 
 function main() {
-    // requests continous render
-    // "request to render something"
-    const color = 0xFFFFFF;
-    const intensity = 1;
-    const light = new THREE.DirectionalLight(color, intensity);
-    light.position.set(-1, 2, 4);
-    scene.add(light);
 
-    const staticBridgePart = new THREE.BoxGeometry(20, 1, 60);
-    const openableBridgePart = new THREE.BoxGeometry(20, 1, 15);
-
-    const staticBridgeComponents = [
-        makeCube(staticBridgePart, 0x44aa88, 0),
-        makeCube(staticBridgePart, 0x44aa88, 90),
-        makeCube(staticBridgePart, 0x44aa88, 150),
-    ];
-
-    const openableBridgeParts = [
-        makeCube(openableBridgePart, 0xaa4488, 60),
-        makeCube(openableBridgeP)
-    ]
-
-    // Also prevents the canvas from stretching the
-    function updateCanvasToFitScreen() {
-        // Canvas instead of window width and height to prevent stretching the image. This preserves aspect ratio!
-        camera.aspect = canvas.clientWidth / canvas.clientHeight;
-        camera.updateProjectionMatrix();
-    }
-
-    // keeps rendering on a constant basis
-    // "time" is a three.js auto-managed variable
-    function render(time) {
-        // convert to seconds
-        time *= 0.001;
-        // rotation is in radiants
-
-        updateCanvasToFitScreen();
-
-        renderer.render(scene, camera);
-        requestAnimationFrame(render);
-    }
-    requestAnimationFrame(render);
-
-
-}
-
-
-
-function DoCameraMovement(){
-
-}
-
-main();
-*/
-
-
-
-function main() {
     const canvas = document.querySelector('#mainCanvas');
     const renderer = new THREE.WebGLRenderer({canvas});
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -120,10 +29,10 @@ function main() {
     const fov = 75;
     const aspect = 2;  // the canvas default
     const near = 0.1;
-    const far = 100;
+    const far = 200;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.z = 20;
-    camera.position.y = 5;
+    camera.position.z = 50;
+    camera.position.y = 10;
     
   
     const scene = new THREE.Scene();
@@ -135,39 +44,228 @@ function main() {
       light.position.set(-1, 2, 4);
       scene.add(light);
     }
+
+    
+
   
-    const boxWidth = 1;
-    const boxHeight = 1;
-    const boxDepth = 1;
-    const box = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
 
-    const brugdekGeo =  new THREE.BoxGeometry(15, 1, 10);
+
+
   
-    function makeInstance(geometry, color, x) {
+    const brugdekGeo =  new THREE.BoxGeometry(30, 1, 20);
+    const RoadRailing = new THREE.BoxGeometry(30, 2, 0.2);
+    const sidewalk = new THREE.BoxGeometry(30, 0.2, 2);
+    const sidewalkRailer = new THREE.BoxGeometry(30, 1, 0.1);
+
+    const pilaar = new THREE.BoxGeometry(0.4, 15, 0.4);
+    const dwarsbalk = new THREE.BoxGeometry(0.4, 0.4, 1.2);
+
+    //const gewicht = new THREE.BoxGeometry(2, 2, 4);
+
+    const wheel = new THREE.CylinderGeometry(1.1,1.1,0.2,10);
+
+    const cabel = new THREE.CylinderGeometry(0.05,0.05,1,6);
+
+    var shape = new THREE.Shape();
+        shape.moveTo( 0,0 );
+        shape.lineTo( 0, 2 );
+        shape.lineTo( 2, 0 );
+        shape.lineTo( 0, 0 );
+
+    var extrudeSettings = {
+      steps: 2,
+      amount: 2,
+      bevelEnabled: false,
+    };			
+
+    var prism = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+
+
+    const gewicht = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+    gewicht.scale.x = 2;
+    gewicht.scale.y = 2;
+    gewicht.scale.z = 4;
+
+    class BrugdekOnderdeel
+    {
+        constructor(x,y,z){
+            this.road = makeInstance(brugdekGeo, 0xffffff,  x,y,z);
+            this.roadRailingLeft = makeInstance(RoadRailing, 0xffffff,  x, y+1.5 , z - 10);
+            this.roadRailingRight = makeInstance(RoadRailing, 0xffffff,  x, y+1.5 , z + 10);
+            this.sidewalkRight = makeInstance(sidewalk, 0xffffff,  x, y-0.4 , z + 11);
+            this.sidewalkLeft = makeInstance(sidewalk, 0xffffff,  x, y-0.4 , z - 11);
+            this.sidwalkRailingLeft = makeInstance(sidewalkRailer, 0xffffff,  x, y , z - 12);
+            this.sidwalkRailingRight = makeInstance(sidewalkRailer, 0xffffff,  x, y , z + 12);
+        }
+
+        SetY(y){
+            this.road.position.y = y;
+            this.roadRailingLeft.position.y = y+1.5;
+            this.roadRailingRight.position.y = y+1.5;
+            this.sidewalkRight.position.y = y-0.4;
+            this.sidewalkLeft.position.y = y-0.4;
+            this.sidwalkRailingLeft.position.y = y;
+            this.sidwalkRailingRight.position.y = y;
+        }
+    }
+
+    class Brugtoren
+    {
+        constructor(x,y,z,dir){
+            this.NOpilaar = makeInstance(pilaar, 0xffffff,  x+0.8, y+2.5 , z-0.8);
+            this.NWpilaar = makeInstance(pilaar, 0xffffff,  x-0.8, y+2.5 , z-0.8);
+            this.ZOpilaar = makeInstance(pilaar, 0xffffff,  x+0.8, y+2.5 , z+0.8);
+            this.ZWpilaar = makeInstance(pilaar, 0xffffff,  x-0.8, y+2.5 , z+0.8);
+
+            this.dwarsOnder = new PilaarDwarsBalken(x,2.7,z);
+            this.dwarsMiden = new PilaarDwarsBalken(x,6.25,z);
+            this.dwarsBoven = new PilaarDwarsBalken(x,9.8,z);
+
+            this.wielen = new BrugTorenWielen(x,11.2,z)
+
+            this.gewicht = makeInstance(gewicht, 0xffffff,  x+ 2*dir -1 , 9 -1 , z -2);
+
+            this.Ngewichtkabel = new kabel ( x + 1.1*dir, 0, z+0.9)
+            this.Zgewichtkabel = new kabel ( x + 1.1*dir, 0, z-0.9)
+
+            this.Ndekkabel = new kabel ( x + -1.1*dir, 0, z+0.9)
+            this.Zdekkabel = new kabel ( x + -1.1*dir, 0, z-0.9)
+
+        }
+
+        setGewichtKabel(bottom){
+            this.Ngewichtkabel.setLength(11.2,bottom);
+            this.Zgewichtkabel.setLength(11.2,bottom);
+        }
+
+        setDekKabel(bottom){
+            this.Ndekkabel.setLength(11.2,bottom);
+            this.Zdekkabel.setLength(11.2,bottom);
+        }
+    }
+
+    class kabel
+    {
+        constructor(x,y,z)
+        {
+            this.k = makeInstance(cabel, 0x888888, x, y, z)
+        }
+
+        setLength(top,bottom)
+        {
+            this.k.scale.y = top-bottom;
+            this.k.position.y = (top-bottom)/2+bottom;
+        }
+
+    }
+
+    class PilaarDwarsBalken
+    {
+        constructor(x,y,z){
+            this.Nbalk = makeInstance(dwarsbalk, 0xffffff,  x, y , z-0.8);
+            this.Nbalk.rotateY(1.5708);
+            this.Zbalk = makeInstance(dwarsbalk, 0xffffff,  x, y , z+0.8);
+            this.Zbalk.rotateY(1.5708);
+
+            this.Obalk = makeInstance(dwarsbalk, 0xffffff,  x+0.8, y , z);
+            this.Wbalk = makeInstance(dwarsbalk, 0xffffff,  x-0.8, y , z);
+        }
+    }
+
+    class Bruggewichten
+    {
+        constructor(){
+            this.no = makeInstance(gewicht, 0xffffff,  18, 9 , -11);
+            this.nw = makeInstance(gewicht, 0xffffff,  -18, 9 , -11);
+            this.zo = makeInstance(gewicht, 0xffffff,  18, 9 , 11);
+            this.zw = makeInstance(gewicht, 0xffffff,  -18, 9 , 11);
+        }
+
+        SetY(y){
+            this.no.position.y = y;
+            this.nw.position.y = y;
+            this.zo.position.y = y;
+            this.zw.position.y = y;
+        }
+    }
+
+    class BrugTorenWielen
+    {
+        constructor(x,y,z){
+            this.links = makeInstance(wheel, 0xffff00,  x, 11.2 ,z-0.9 );
+            this.rechts = makeInstance(wheel, 0xffff00,  x, 11.2 ,z+0.9 );
+            this.links.rotateX(1.5708);
+            this.rechts.rotateX(1.5708);
+            
+        }
+
+        Rotate(time){
+            this.links.rotateY(time);
+            this.rechts.rotateY(time)
+        }
+    }
+
+    class Torens
+    {
+        constructor(){
+            this.noToren = new Brugtoren(16,0,-11,1);
+            this.nwToren = new Brugtoren(-16,0,-11,-1);
+            this.zoToren = new Brugtoren(16,0,11,1);
+            this.zwToren = new Brugtoren(-16,0,11,-1);
+        }
+
+        moveWeights(y){
+            this.noToren.gewicht.position.y = 9-y;
+            this.nwToren.gewicht.position.y = 9-y; 
+            this.zoToren.gewicht.position.y = 9-y;
+            this.zwToren.gewicht.position.y = 9-y;
+
+            this.noToren.setGewichtKabel(9-y);
+            this.nwToren.setGewichtKabel(9-y);
+            this.zoToren.setGewichtKabel(9-y);
+            this.zwToren.setGewichtKabel(9-y);
+
+            this.noToren.setDekKabel(y);
+            this.nwToren.setDekKabel(y);
+            this.zoToren.setDekKabel(y);
+            this.zwToren.setDekKabel(y);
+        }
+
+        moveWheels(time){
+            this.noToren.wielen.Rotate(time);
+            this.nwToren.wielen.Rotate(-time);
+            this.zoToren.wielen.Rotate(time);
+            this.zwToren.wielen.Rotate(-time);
+        }
+    }
+
+    function makeInstance(geometry, color, x,y,z) {
       const material = new THREE.MeshPhongMaterial({color});
   
       const cube = new THREE.Mesh(geometry, material);
       scene.add(cube);
   
       cube.position.x = x;
+      cube.position.y = y;
+      cube.position.z = z;
   
       return cube;
     }
     
-    const cubes = [
-      //makeInstance(brugdekGeo, 0xffffff,  0),
-      //makeInstance(box, 0x8844aa, -2),
-      //makeInstance(box, 0xaa8844,  2),
-    ];
 
-    const brugdekMidden = makeInstance(brugdekGeo, 0xffffff,  0)
+    const brugdekMidden = new BrugdekOnderdeel(0,0,0);
+    const brugdekLinks = new BrugdekOnderdeel(-30,0,0);
+    const brugdekRechts = new BrugdekOnderdeel(30,0,0);
 
-    const brugdekLinks = makeInstance(brugdekGeo, 0xffffff,  0)
-    brugdekLinks.position.x = -15;
+    const torens = new Torens();
+    
 
-    const brugdekRechts = makeInstance(brugdekGeo, 0xffffff,  0)
-    brugdekRechts.position.x = 15;
+    //const gewichten = new Bruggewichten();
+
+    
+
+    const openDistance = 5;
 
     var timeLastUpdate = 0;
   
@@ -176,25 +274,15 @@ function main() {
       const timepassed = time - timeLastUpdate;
       timeLastUpdate = time;
 
-    
-
-      cubes.forEach((cube, ndx) => {
-        const speed = 1 + ndx * .1;
-        const rot = time * speed;
-        cube.rotation.x = rot;
-        cube.rotation.y = rot;
-
-
-        cube.position.y = Math.sin(time);
-      });
-
-      if(open == true && bridgeY < 5)
+      if(open == true && bridgeY < openDistance)
       {
         bridgeY += timepassed;
-        if(bridgeY > 5){
-            bridgeY = 5;
+        if(bridgeY > openDistance){
+            bridgeY = openDistance;
         }
-        brugdekMidden.position.y = bridgeY;
+        brugdekMidden.SetY(bridgeY);
+        torens.moveWeights(bridgeY);
+        torens.moveWheels(-timepassed);
       }
       if(open == false && bridgeY > 0)
       {
@@ -202,7 +290,9 @@ function main() {
         if(bridgeY < 0){
             bridgeY = 0;
         }
-        brugdekMidden.position.y = bridgeY;
+        brugdekMidden.SetY(bridgeY);
+        torens.moveWeights(bridgeY);
+        torens.moveWheels(timepassed);
       }
   
       renderer.render(scene, camera);
@@ -214,3 +304,7 @@ function main() {
   }
   
   main();
+
+
+
+
