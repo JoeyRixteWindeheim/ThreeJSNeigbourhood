@@ -185,12 +185,16 @@ function main() {
     gewicht.scale.z = 6;
 
     class BrugdekOnderdeel {
+
+
         constructor(x, y, z) {
-            this.road = makeInstance(brugdekGeo, 0xffffff, x, y, z);
+            const sidewalkMaterial = this.makeSidewalkMaterial();
+            const roadMaterial = this.makeRoadMaterial();
+            this.road = makeInstanceWithTexture(brugdekGeo, roadMaterial, x, y, z);
             this.roadRailingLeft = makeInstance(RoadRailing, 0xffffff, x, y + 1.5, z - 10);
             this.roadRailingRight = makeInstance(RoadRailing, 0xffffff, x, y + 1.5, z + 10);
-            this.sidewalkRight = makeInstance(sidewalk, 0xffffff, x, y - 0.4, z + 11);
-            this.sidewalkLeft = makeInstance(sidewalk, 0xffffff, x, y - 0.4, z - 11);
+            this.sidewalkRight = makeInstanceWithTexture(sidewalk, sidewalkMaterial, x, y - 0.4, z + 11);
+            this.sidewalkLeft = makeInstanceWithTexture(sidewalk, sidewalkMaterial, x, y - 0.4, z - 11);
             this.sidwalkRailingLeft = makeInstance(sidewalkRailer, 0xffffff, x, y, z - 12);
             this.sidwalkRailingRight = makeInstance(sidewalkRailer, 0xffffff, x, y, z + 12);
         }
@@ -204,6 +208,84 @@ function main() {
             this.sidwalkRailingLeft.position.y = y;
             this.sidwalkRailingRight.position.y = y;
         }
+
+        makeSidewalkMaterial() {
+            // how often should it repeat?
+            const sidewalkWidthRepeat = sidewalk.parameters.width / 2;
+            const sidewalkLengthRepeat = sidewalk.parameters.depth / 2;
+
+            // load textures
+            const sidewalkAO = loader.load('./resources/images/sidewalk/AO.png');
+            sidewalkAO.wrapS = THREE.RepeatWrapping;
+            sidewalkAO.wrapT = THREE.RepeatWrapping;
+            sidewalkAO.repeat.set( sidewalkWidthRepeat, sidewalkLengthRepeat );
+            const sidewalkDiffuse = loader.load('./resources/images/sidewalk/Diffuse.png');
+            sidewalkDiffuse.wrapS = THREE.RepeatWrapping;
+            sidewalkDiffuse.wrapT = THREE.RepeatWrapping;
+            sidewalkDiffuse.repeat.set( sidewalkWidthRepeat, sidewalkLengthRepeat );
+            const sidewalkNormal = loader.load('./resources/images/sidewalk/Normal.png');
+            sidewalkNormal.wrapS = THREE.RepeatWrapping;
+            sidewalkNormal.wrapT = THREE.RepeatWrapping;
+            sidewalkNormal.repeat.set( sidewalkWidthRepeat, sidewalkLengthRepeat );
+
+            // only change the top of the mesh
+            const sidewalkMaterials = [
+
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial(
+                    {
+                        aoMap: sidewalkAO,
+                        normalMap: sidewalkNormal,
+                        map: sidewalkDiffuse
+                    }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff })
+
+            ];
+            return sidewalkMaterials;
+        }
+
+        makeRoadMaterial() {
+            // how many times does it repeat?
+            const roadWidthRepeat = 2;
+            const roadLengthRepeat = 2;
+
+            // load all textures needed and repeat them
+            const roadAO = loader.load('./resources/images/road/Highway_road_patches_02_2K_AO.png');
+            roadAO.wrapS = THREE.RepeatWrapping;
+            roadAO.wrapT = THREE.RepeatWrapping;
+            roadAO.repeat.set( roadWidthRepeat, roadLengthRepeat );
+            const roadDiffuse = loader.load('./resources/images/road/Highway_road_patches_02_2K_Base_Color.png');
+            roadDiffuse.wrapS = THREE.RepeatWrapping;
+            roadDiffuse.wrapT = THREE.RepeatWrapping;
+            roadDiffuse.repeat.set( roadWidthRepeat, roadLengthRepeat );
+            const roadNormal = loader.load('./resources/images/road/Highway_road_patches_02_2K_Normal.png');
+            roadNormal.wrapS = THREE.RepeatWrapping;
+            roadNormal.wrapT = THREE.RepeatWrapping;
+            roadNormal.repeat.set( roadWidthRepeat, roadLengthRepeat );
+            const roadMaterials = [
+
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial(
+                    {
+                        aoMap: roadAO,
+                        normalMap: roadNormal,
+                        map: roadDiffuse
+                    }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                new THREE.MeshStandardMaterial({ color: 0xffffff })
+
+                ];
+            return roadMaterials;
+        }
+
+
     }
 
     class Brugtoren {
@@ -349,6 +431,17 @@ function main() {
         return cube;
     }
 
+    function makeInstanceWithTexture(geometry, material, x, y, z) {
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        cube.position.x = x;
+        cube.position.y = y;
+        cube.position.z = z;
+
+        return cube;
+    }
+
 
     const brugdekMidden = new BrugdekOnderdeel(0, 0, 0);
     const brugdekLinks = new BrugdekOnderdeel(-30, 0, 0);
@@ -366,7 +459,7 @@ function main() {
 
     const riverGeometry = new THREE.BoxGeometry(210, 1, 400);
     const riverMaterial = new THREE.MeshPhongMaterial( {
-                                color: 0xebd66e,
+                                color: 0x31877d,
     } );
     const mainRiver = new THREE.Mesh(riverGeometry, riverMaterial);
     scene.add(mainRiver);
@@ -383,17 +476,7 @@ function main() {
                 {
                             normalMap0: riverNormalMap,
                             normalMap1: riverNormalMap2,
-                            // sunColor: 0xffffff,
-                            // waterColor: 0x001e0f,
-                            // distortionScale: 3.7,
-                            // alpha: 1.0,
-                            // fog: scene.fog !== undefined
-                    alpha: 1.0,
-                    sunDirection: new THREE.Vector3(),
-                    sunColor: 0xffffff,
-                    waterColor: 0x001e0f,
-                    distortionScale: 3.7,
-                    fog: scene.fog !== undefined
+                            flowDirection: new THREE.Vector2( 0, -1 ),
                         }    );
     scene.add(water);
     // Water is vertical wall. We need it to be flat. Rotate it on the x-axis.
