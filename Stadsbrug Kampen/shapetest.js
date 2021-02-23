@@ -1,4 +1,4 @@
-import * as THREE from './three/three.js';
+import * as THREE from './three/build/three.module.js';
 
 function main() {
   const canvas = document.querySelector('#mainCanvas');
@@ -25,13 +25,14 @@ function main() {
 
   
 
-  
+
 
   var shape = new THREE.Shape();
-  shape.moveTo( 0,0 );
-  shape.lineTo( 0, 2 );
-  shape.lineTo( 2, 0 );
-  shape.lineTo( 0, 0 );
+  shape.moveTo( 0,0,0 );
+  shape.lineTo( 1,1,1 );
+  shape.lineTo( 0,0,2 );
+  shape.lineTo( 1,-1,-1);
+  shape.lineTo( 0,0,0);
 
   var extrudeSettings = {
       steps: 2,
@@ -43,7 +44,7 @@ function main() {
 
   const material = new THREE.MeshPhongMaterial({color: 0x44aa88});  // greenish blue
 //material.side = THREE.DoubleSide;
-  const cube = new THREE.Mesh(geometry, material);
+  const cube = new THREE.Mesh(geom, material);
   
   scene.add(cube);
 

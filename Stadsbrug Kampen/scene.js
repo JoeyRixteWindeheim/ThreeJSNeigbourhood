@@ -150,9 +150,10 @@ function main() {
 
 
 
-    const brugdekGeo = new THREE.BoxGeometry(30, 1, 20);
-    const RoadRailing = new THREE.BoxGeometry(30, 2, 0.2);
-    const sidewalk = new THREE.BoxGeometry(30, 0.2, 2);
+    const brugdekGeo = new THREE.BoxGeometry(30, 2, 20);
+    const RoadRailingGlass = new THREE.BoxGeometry(30, 2, 0.1);
+    const RoadRailingTop = new THREE.CylinderGeometry(0.1, 0.1, 30, 10);
+    //const sidewalk = new THREE.BoxGeometry(30, 0.2, 2);
     const sidewalkRailer = new THREE.BoxGeometry(30, 1, 0.1);
 
     const pilaar = new THREE.BoxGeometry(0.4, 15, 0.4);
@@ -180,9 +181,43 @@ function main() {
 
 
     const gewicht = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    gewicht.scale.x = 2;
-    gewicht.scale.y = 2;
-    gewicht.scale.z = 6;
+
+    const sidewalk = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+    const BetonMain = new THREE.BoxGeometry(3, 4, 24);
+
+    const BetonFront = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+    
+    class BetonPilaar{
+        constructor(x) {
+            this.main = makeInstance(BetonMain, 0xffffff, x, -5, 0);
+            this.ZO = makeInstance(BetonFront, 0xffffff, x, -3, 12);
+            this.ZO.scale.x = 3/4;
+            this.ZO.scale.y = 3/4;
+            this.ZO.scale.z = 2;
+            this.ZO.rotateX(Math.PI/2);
+            this.ZW = makeInstance(BetonFront, 0xffffff, x, -3, 12);
+            this.ZW.scale.x = 3/4;
+            this.ZW.scale.y = 3/4;
+            this.ZW.scale.z = 2;
+            this.ZW.rotateY(-Math.PI/2);
+            this.ZW.rotateX(Math.PI/2);
+
+            this.NO = makeInstance(BetonFront, 0xffffff, x, -7, -12);
+            this.NO.scale.x = 3/4;
+            this.NO.scale.y = 3/4;
+            this.NO.scale.z = 2;
+            this.NO.rotateX(-Math.PI/2);
+            this.NW = makeInstance(BetonFront, 0xffffff, x, -7, -12);
+            this.NW.scale.x = 3/4;
+            this.NW.scale.y = 3/4;
+            this.NW.scale.z = 2;
+            this.NW.rotateY(Math.PI/2);
+            this.NW.rotateX(-Math.PI/2);
+        }
+
+    }
 
     class BrugdekOnderdeel {
 
@@ -190,29 +225,47 @@ function main() {
         constructor(x, y, z) {
             const sidewalkMaterial = this.makeSidewalkMaterial();
             const roadMaterial = this.makeRoadMaterial();
-            this.road = makeInstanceWithTexture(brugdekGeo, roadMaterial, x, y, z);
-            this.roadRailingLeft = makeInstance(RoadRailing, 0xffffff, x, y + 1.5, z - 10);
-            this.roadRailingRight = makeInstance(RoadRailing, 0xffffff, x, y + 1.5, z + 10);
-            this.sidewalkRight = makeInstanceWithTexture(sidewalk, sidewalkMaterial, x, y - 0.4, z + 11);
-            this.sidewalkLeft = makeInstanceWithTexture(sidewalk, sidewalkMaterial, x, y - 0.4, z - 11);
+            this.road = makeInstanceWithTexture(brugdekGeo, roadMaterial, x, y-0.5, z);
+			this.roadRailingLeft = makeInstance(RoadRailingGlass, 0xffffff, x, y + 1.5, z - 9.9);
+            this.roadRailingRight = makeInstance(RoadRailingGlass, 0xffffff, x, y + 1.5, z + 9.9);
+            this.sidewalkRight = makeInstanceWithTexture(sidewalk, sidewalkMaterial,  x -15, y - 0.5, z + 10);
+			this.sidewalkRight.scale.y = 0.5;
+            this.sidewalkRight.scale.z = 15;
+            this.sidewalkRight.rotateY(-(Math.PI/2));
+            this.sidewalkRight.rotateX(Math.PI);
+			
+            this.sidewalkLeft = makeInstanceWithTexture(sidewalk, sidewalkMaterial, x+15, y - 0.5, z - 10);
+			this.sidewalkLeft.scale.y = 0.5;
+            this.sidewalkLeft.scale.z = 15;
+            this.sidewalkLeft.rotateY(Math.PI/2);
+            this.sidewalkLeft.rotateX(Math.PI);
+
             this.sidwalkRailingLeft = makeInstance(sidewalkRailer, 0xffffff, x, y, z - 12);
             this.sidwalkRailingRight = makeInstance(sidewalkRailer, 0xffffff, x, y, z + 12);
+            this.RailingTopLeft = makeInstance(RoadRailingTop, 0xffffff, x, y + 2.5, z - 9.9);
+            this.RailingTopLeft.rotateY(Math.PI /2);
+            this.RailingTopLeft.rotateX(Math.PI /2);
+            this.RailingTopRight = makeInstance(RoadRailingTop, 0xffffff, x, y + 2.5, z + 9.9);
+            this.RailingTopRight.rotateY(Math.PI /2);
+            this.RailingTopRight.rotateX(Math.PI /2);
         }
 
         SetY(y) {
-            this.road.position.y = y;
+            this.road.position.y = y-0.5;
             this.roadRailingLeft.position.y = y + 1.5;
             this.roadRailingRight.position.y = y + 1.5;
-            this.sidewalkRight.position.y = y - 0.4;
-            this.sidewalkLeft.position.y = y - 0.4;
+            this.sidewalkRight.position.y = y - 0.5;
+            this.sidewalkLeft.position.y = y - 0.5;
             this.sidwalkRailingLeft.position.y = y;
             this.sidwalkRailingRight.position.y = y;
+            this.RailingTopLeft.position.y = y+2.5;
+            this.RailingTopRight.position.y = y+2.5;
         }
 
         makeSidewalkMaterial() {
             // how often should it repeat?
-            const sidewalkWidthRepeat = sidewalk.parameters.width / 2;
-            const sidewalkLengthRepeat = sidewalk.parameters.depth / 2;
+            const sidewalkWidthRepeat = 1;
+            const sidewalkLengthRepeat = sidewalk.parameters.options.amount * 3;
 
             // load textures
             const sidewalkAO = loader.load('./resources/images/sidewalk/AO.png');
@@ -229,9 +282,23 @@ function main() {
             sidewalkNormal.repeat.set( sidewalkWidthRepeat, sidewalkLengthRepeat );
 
             // only change the top of the mesh
+            // const sidewalkMaterials = [
+            //
+            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            //     new THREE.MeshStandardMaterial(
+            //         {
+            //             aoMap: sidewalkAO,
+            //             normalMap: sidewalkNormal,
+            //             map: sidewalkDiffuse
+            //         }),
+            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            //     new THREE.MeshStandardMaterial({ color: 0xffffff })
+            //
+            // ];
             const sidewalkMaterials = [
-
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
                 new THREE.MeshStandardMaterial({ color: 0xffffff }),
                 new THREE.MeshStandardMaterial(
                     {
@@ -239,9 +306,7 @@ function main() {
                         normalMap: sidewalkNormal,
                         map: sidewalkDiffuse
                     }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+
                 new THREE.MeshStandardMaterial({ color: 0xffffff })
 
             ];
@@ -301,7 +366,12 @@ function main() {
 
             this.wielen = new BrugTorenWielen(x, 11.2, z)
 
-            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1, 9 - 1, z -1);
+            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 0, z -2*dir);
+            
+            this.gewicht.scale.z = 2;
+            if(dir == -1){
+                this.gewicht.rotateY(Math.PI);
+            }
 
             this.Ngewichtkabel = new kabel(x + 1.1 * dir, 0, z + 0.9)
             this.Zgewichtkabel = new kabel(x + 1.1 * dir, 0, z - 0.9)
@@ -386,20 +456,20 @@ function main() {
         }
 
         moveWeights(y) {
-            this.noToren.gewicht.position.y = 9 - y;
-            this.nwToren.gewicht.position.y = 9 - y;
-            this.zoToren.gewicht.position.y = 9 - y;
-            this.zwToren.gewicht.position.y = 9 - y;
+            this.noToren.gewicht.position.y = 8 - y;
+            this.nwToren.gewicht.position.y = 8 - y;
+            this.zoToren.gewicht.position.y = 8 - y;
+            this.zwToren.gewicht.position.y = 8 - y;
 
             this.noToren.setGewichtKabel(9 - y);
             this.nwToren.setGewichtKabel(9 - y);
             this.zoToren.setGewichtKabel(9 - y);
             this.zwToren.setGewichtKabel(9 - y);
 
-            this.noToren.setDekKabel(y);
-            this.nwToren.setDekKabel(y);
-            this.zoToren.setDekKabel(y);
-            this.zwToren.setDekKabel(y);
+            this.noToren.setDekKabel(y-0.5);
+            this.nwToren.setDekKabel(y-0.5);
+            this.zoToren.setDekKabel(y-0.5);
+            this.zwToren.setDekKabel(y-0.5);
         }
 
         moveWheels(time) {
@@ -449,7 +519,8 @@ function main() {
 
     const torens = new Torens();
 
-
+    const BetonPilaarLinks = new BetonPilaar(-16);
+    const BetonPilaarRechts = new BetonPilaar(16);
     //const gewichten = new Bruggewichten();
 
 
@@ -522,7 +593,7 @@ function main() {
         playerCameraMovement();
 
 
-        if (open == true && bridgeY < 5) {
+        if (open == true && bridgeY < openDistance) {
             bridgeY += timepassed;
             if (bridgeY > openDistance) {
                 bridgeY = openDistance;
