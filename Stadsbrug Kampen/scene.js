@@ -1,5 +1,6 @@
 import * as THREE from './three/build/three.module.js';
 import { OrbitControls } from './three/examples/jsm/controls/OrbitControls.js';
+import { Water } from './three/examples/jsm/objects/Water2.js';
 
 function main() {
     const canvas = document.querySelector('#mainCanvas');
@@ -9,7 +10,7 @@ function main() {
     const fov = 75;
     const aspect = 2;  // the canvas default
     const near = 0.1;
-    const far = 200;
+    const far = 400;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.position.z = 50;
     camera.position.y = 5;
@@ -125,7 +126,25 @@ function main() {
 
 
 
+    // Lights; one hemisphere light to light the entire scene, and one directional light to simulate the sun.
+    // Is way prettier than without; also looks more realistic
+      const color = 0xFFFFFF;
+      const intensity = 1;
+      const light = new THREE.DirectionalLight(color, intensity);
+      const hemiLight = new THREE.HemisphereLight(color, 0x787878, 0.4);
+      light.position.set(-1, 2, 4);
+      scene.add(light);
+      scene.add(hemiLight);
 
+    // helper for loading external images
+    const loader = new THREE.TextureLoader();
+
+    // ///Skybox
+    // const skybox = loader.load('./resources/images/skybox.jpg', () => {
+    //     const renderTarget = new THREE.WebGLCubeRenderTarget(skybox.image.height);
+    //     renderTarget.fromEquirectangularTexture(renderer, skybox);
+    //     scene.background = renderTarget;
+    // });
 
 
 
@@ -315,18 +334,6 @@ function main() {
     }
 
 
-    // helper for loading external images
-    const loader = new THREE.CubeTextureLoader();
-    const skybox = loader.load([
-        'resources/images/skybox1.png',
-        'resources/images/skybox2.png',
-        'resources/images/skybox3.png',
-        'resources/images/skybox3.png',
-        'resources/images/skybox4.png',
-        'resources/images/skybox5.png',
-    ]);
-    scene.background = skybox;
-
     const boxWidth = 1;
     const boxHeight = 1;
     const boxDepth = 1;
@@ -361,8 +368,45 @@ function main() {
 
     const openDistance = 5;
 
-    const mainRiver = makeInstance(new THREE.BoxGeometry(210, 1, 400), 0x086ca6, 0);
-    mainRiver.position.y = -5;
+
+    const riverGeometry = new THREE.BoxGeometry(210, 1, 400);
+    const riverMaterial = new THREE.MeshPhongMaterial( {
+                                color: 0xebd66e,
+    } );
+    const mainRiver = new THREE.Mesh(riverGeometry, riverMaterial);
+    scene.add(mainRiver);
+    mainRiver.position.y = -10;
+    mainRiver.position.z = 100;
+
+
+    const riverNormalMap = loader.load('./three/examples/textures/water/Water_1_M_Normal.jpg');
+    const riverNormalMap2 = loader.load('./three/examples/textures/water/Water_2_M_Normal.jpg');
+    // needs to be plane; any 3d shape won't work
+    const waterGeometry = new THREE.PlaneGeometry( 210, 400 );
+    const water = new Water(
+                        waterGeometry,
+                {
+                            normalMap0: riverNormalMap,
+                            normalMap1: riverNormalMap2,
+                            // sunColor: 0xffffff,
+                            // waterColor: 0x001e0f,
+                            // distortionScale: 3.7,
+                            // alpha: 1.0,
+                            // fog: scene.fog !== undefined
+                    alpha: 1.0,
+                    sunDirection: new THREE.Vector3(),
+                    sunColor: 0xffffff,
+                    waterColor: 0x001e0f,
+                    distortionScale: 3.7,
+                    fog: scene.fog !== undefined
+                        }    );
+    scene.add(water);
+    // Water is vertical wall. We need it to be flat. Rotate it on the x-axis.
+    water.rotation.x = Math.PI * - 0.5;
+    water.position.y = -5.6;
+    water.position.z = 10;
+
+
 
 
 
