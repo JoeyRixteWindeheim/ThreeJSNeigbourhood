@@ -703,7 +703,7 @@ function main() {
     const openDistance = 5;
 
 
-    const riverGeometry = new THREE.BoxGeometry(90, 1, 400);
+    const riverGeometry = new THREE.BoxGeometry(90, 1, 300);
     const riverMaterial = new THREE.MeshPhongMaterial( {
                                 color: 0x31877d,
     } );
@@ -716,7 +716,7 @@ function main() {
     const riverNormalMap = loader.load('./three/examples/textures/water/Water_1_M_Normal.jpg');
     const riverNormalMap2 = loader.load('./three/examples/textures/water/Water_2_M_Normal.jpg');
     // needs to be plane; any 3d shape won't work
-    const waterGeometry = new THREE.PlaneGeometry( 90, 400 );
+    const waterGeometry = new THREE.PlaneGeometry( 90, 300 );
     const water = new Water(
                         waterGeometry,
                 {
