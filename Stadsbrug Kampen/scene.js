@@ -1,11 +1,13 @@
 import * as THREE from './three/build/three.module.js';
 import { OrbitControls } from './three/examples/jsm/controls/OrbitControls.js';
 import { Water } from './three/examples/jsm/objects/Water2.js';
+import { KMZLoader } from './three/examples/jsm/loaders/KMZLoader.js';
 
 function main() {
     const canvas = document.querySelector('#mainCanvas');
     const renderer = new THREE.WebGLRenderer({ canvas });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
 
     const fov = 75;
     const aspect = 2;  // the canvas default
@@ -18,7 +20,7 @@ function main() {
     canvas.parentElement.addEventListener('keydown', onKeypress);
 
     const scene = new THREE.Scene();
-
+    scene.fog = new THREE.Fog(0xFFFFFF, 150, 200);
 
 
 
@@ -127,12 +129,46 @@ function main() {
       const intensity = 1;
       const light = new THREE.DirectionalLight(color, intensity);
       const hemiLight = new THREE.HemisphereLight(color, 0x787878, 0.4);
-      light.position.set(-1, 2, 4);
+      light.position.set(-150, 75, 100);
+      light.target.position.set(-4, 0, -4);
+      light.castShadow = true;
+
+      //makes it so shadows are rendered throughout the entire map
+      light.shadow.camera.near = 0.1;
+      light.shadow.camera.far = 500;
+      light.shadow.camera.top = 100;
+      light.shadow.camera.bottom = -100;
+      light.shadow.camera.left = 100;
+      light.shadow.camera.right = -100;
+
+      // prevents objects from casting shadow upon self
+      light.shadow.bias = -0.01;
+
+      // makes for prettier shadows but decreases performance
+      light.shadow.mapSize.width = 1024;
+      light.shadow.mapSize.height = 1024;
+
+
       scene.add(light);
       scene.add(hemiLight);
 
+
+
     // helper for loading external images
     const loader = new THREE.TextureLoader();
+
+    // loader for external KMZ models
+    const kmzLoader = new KMZLoader();
+
+    // kmzLoader.load( './resources/models/houses.kmz', function ( kmz ) {
+    //
+    //     //kmz.scene.position.y = 0.5;
+    //     kmz.scene.rotation.z = 145;
+    //     kmz.scene.position.x = 75;
+    //     scene.add( kmz.scene );
+    //     render();
+    //
+    // } );
 
     // ///Skybox
     // const skybox = loader.load('./resources/images/skybox.jpg', () => {
@@ -188,28 +224,59 @@ function main() {
 
     const BetonFront = new THREE.ExtrudeGeometry(shape, extrudeSettings);
 
-    
+    function makeConcreteMaterial() {
+        // how many times does it repeat?
+        const concreteWidthRepeat = 2;
+        const concreteLengthRepeat = 2;
+
+        // load all textures needed and repeat them
+        const concreteAO = loader.load('./resources/images/concrete/AO.png');
+        concreteAO.wrapS = THREE.RepeatWrapping;
+        concreteAO.wrapT = THREE.RepeatWrapping;
+        concreteAO.repeat.set( concreteWidthRepeat, concreteLengthRepeat );
+        const concreteDiffuse = loader.load('./resources/images/concrete/base.png');
+        concreteDiffuse.wrapS = THREE.RepeatWrapping;
+        concreteDiffuse.wrapT = THREE.RepeatWrapping;
+        concreteDiffuse.repeat.set( concreteWidthRepeat, concreteLengthRepeat );
+        const concreteNormal = loader.load('./resources/images/concrete/normal.png');
+        concreteNormal.wrapS = THREE.RepeatWrapping;
+        concreteNormal.wrapT = THREE.RepeatWrapping;
+        concreteNormal.repeat.set( concreteWidthRepeat, concreteLengthRepeat );
+
+        const concreteMaterial =
+            new THREE.MeshStandardMaterial(
+                {
+                    aoMap: concreteAO,
+                    normalMap: concreteNormal,
+                    map: concreteDiffuse
+                });
+
+        return concreteMaterial;
+    }
+    const concreteMaterial = makeConcreteMaterial();
+
+
     class BetonPilaar{
         constructor(x) {
-            this.main = makeInstance(BetonMain, 0xffffff, x, -5, 0);
-            this.ZO = makeInstance(BetonFront, 0xffffff, x, -3, 12);
+            this.main = makeInstanceWithTexture(BetonMain, concreteMaterial, x, -5, 0);
+            this.ZO = makeInstanceWithTexture(BetonFront, concreteMaterial, x, -3, 12);
             this.ZO.scale.x = 3/4;
             this.ZO.scale.y = 3/4;
             this.ZO.scale.z = 2;
             this.ZO.rotateX(Math.PI/2);
-            this.ZW = makeInstance(BetonFront, 0xffffff, x, -3, 12);
+            this.ZW = makeInstanceWithTexture(BetonFront, concreteMaterial, x, -3, 12);
             this.ZW.scale.x = 3/4;
             this.ZW.scale.y = 3/4;
             this.ZW.scale.z = 2;
             this.ZW.rotateY(-Math.PI/2);
             this.ZW.rotateX(Math.PI/2);
 
-            this.NO = makeInstance(BetonFront, 0xffffff, x, -7, -12);
+            this.NO = makeInstanceWithTexture(BetonFront, concreteMaterial, x, -7, -12);
             this.NO.scale.x = 3/4;
             this.NO.scale.y = 3/4;
             this.NO.scale.z = 2;
             this.NO.rotateX(-Math.PI/2);
-            this.NW = makeInstance(BetonFront, 0xffffff, x, -7, -12);
+            this.NW = makeInstanceWithTexture(BetonFront, concreteMaterial, x, -7, -12);
             this.NW.scale.x = 3/4;
             this.NW.scale.y = 3/4;
             this.NW.scale.z = 2;
@@ -225,15 +292,26 @@ function main() {
         constructor(x, y, z) {
             const sidewalkMaterial = this.makeSidewalkMaterial();
             const roadMaterial = this.makeRoadMaterial();
+            const roadRailMaterial = new THREE.MeshPhysicalMaterial ({
+                transmission: 0.7,
+                reflectivity: 0.1,
+                opacity: 1,
+                transparent: true
+            });
+
+
             this.road = makeInstanceWithTexture(brugdekGeo, roadMaterial, x, y-0.5, z);
-			this.roadRailingLeft = makeInstance(RoadRailingGlass, 0xffffff, x, y + 1.5, z - 9.9);
-            this.roadRailingRight = makeInstance(RoadRailingGlass, 0xffffff, x, y + 1.5, z + 9.9);
+
+
+
+			this.roadRailingLeft = makeInstanceWithTexture(RoadRailingGlass, roadRailMaterial, x, y + 1.5, z - 9.9);
+            this.roadRailingRight = makeInstanceWithTexture(RoadRailingGlass, roadRailMaterial, x, y + 1.5, z + 9.9);
             this.sidewalkRight = makeInstanceWithTexture(sidewalk, sidewalkMaterial,  x -15, y - 0.5, z + 10);
 			this.sidewalkRight.scale.y = 0.5;
             this.sidewalkRight.scale.z = 15;
             this.sidewalkRight.rotateY(-(Math.PI/2));
             this.sidewalkRight.rotateX(Math.PI);
-			
+
             this.sidewalkLeft = makeInstanceWithTexture(sidewalk, sidewalkMaterial, x+15, y - 0.5, z - 10);
 			this.sidewalkLeft.scale.y = 0.5;
             this.sidewalkLeft.scale.z = 15;
@@ -281,23 +359,7 @@ function main() {
             sidewalkNormal.wrapT = THREE.RepeatWrapping;
             sidewalkNormal.repeat.set( sidewalkWidthRepeat, sidewalkLengthRepeat );
 
-            // only change the top of the mesh
-            // const sidewalkMaterials = [
-            //
-            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
-            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
-            //     new THREE.MeshStandardMaterial(
-            //         {
-            //             aoMap: sidewalkAO,
-            //             normalMap: sidewalkNormal,
-            //             map: sidewalkDiffuse
-            //         }),
-            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
-            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
-            //     new THREE.MeshStandardMaterial({ color: 0xffffff }),
-            //     new THREE.MeshStandardMaterial({ color: 0xffffff })
-            //
-            // ];
+
             const sidewalkMaterials = [
                 new THREE.MeshStandardMaterial({ color: 0xffffff }),
                 new THREE.MeshStandardMaterial(
@@ -333,22 +395,25 @@ function main() {
             roadNormal.repeat.set( roadWidthRepeat, roadLengthRepeat );
             const roadMaterials = [
 
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
+                concreteMaterial,
+                concreteMaterial,
                 new THREE.MeshStandardMaterial(
                     {
                         aoMap: roadAO,
                         normalMap: roadNormal,
                         map: roadDiffuse
                     }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff }),
-                new THREE.MeshStandardMaterial({ color: 0xffffff })
+                concreteMaterial,
+                concreteMaterial,
+                concreteMaterial,
+                concreteMaterial
 
                 ];
             return roadMaterials;
         }
+
+        
+
 
 
     }
@@ -492,6 +557,8 @@ function main() {
         const material = new THREE.MeshPhongMaterial({ color });
 
         const cube = new THREE.Mesh(geometry, material);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
         scene.add(cube);
 
         cube.position.x = x;
@@ -503,6 +570,8 @@ function main() {
 
     function makeInstanceWithTexture(geometry, material, x, y, z) {
         const cube = new THREE.Mesh(geometry, material);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
         scene.add(cube);
 
         cube.position.x = x;
@@ -528,20 +597,20 @@ function main() {
     const openDistance = 5;
 
 
-    const riverGeometry = new THREE.BoxGeometry(210, 1, 400);
+    const riverGeometry = new THREE.BoxGeometry(90, 1, 400);
     const riverMaterial = new THREE.MeshPhongMaterial( {
                                 color: 0x31877d,
     } );
     const mainRiver = new THREE.Mesh(riverGeometry, riverMaterial);
     scene.add(mainRiver);
     mainRiver.position.y = -10;
-    mainRiver.position.z = 100;
+    //mainRiver.position.z = 100;
 
 
     const riverNormalMap = loader.load('./three/examples/textures/water/Water_1_M_Normal.jpg');
     const riverNormalMap2 = loader.load('./three/examples/textures/water/Water_2_M_Normal.jpg');
     // needs to be plane; any 3d shape won't work
-    const waterGeometry = new THREE.PlaneGeometry( 210, 400 );
+    const waterGeometry = new THREE.PlaneGeometry( 90, 400 );
     const water = new Water(
                         waterGeometry,
                 {
@@ -553,7 +622,7 @@ function main() {
     // Water is vertical wall. We need it to be flat. Rotate it on the x-axis.
     water.rotation.x = Math.PI * - 0.5;
     water.position.y = -5.6;
-    water.position.z = 10;
+    //water.position.z = 10;
 
 
 
