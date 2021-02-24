@@ -2,3 +2,4 @@ Sidewalk texture: https://texturebox.com/concrete-blocks-texture-01
 Road textures: https://www.cgbookcase.com/textures/highway-road-patches-02
 concrete: https://texturebox.com/concrete-bare-texture-07
 Houses: https://3dwarehouse.sketchup.com/model/eb13a13d456e2f9365e62a442a755d43/Anne-Frankhuis
+Wheels: https://www.cgtrader.com/items/2658737/download-page

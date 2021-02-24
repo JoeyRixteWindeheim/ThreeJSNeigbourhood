@@ -31,7 +31,7 @@ function main() {
 
 
     // Bridge open/close variables
-    var open = true;
+    var open = false;
     var bridgeY = 0;
 
     //Player movement
@@ -166,15 +166,65 @@ function main() {
     // loader for external KMZ models
     const kmzLoader = new KMZLoader();
 
-    // kmzLoader.load( './resources/models/houses.kmz', function ( kmz ) {
-    //
-    //     //kmz.scene.position.y = 0.5;
-    //     kmz.scene.rotation.z = 145;
-    //     kmz.scene.position.x = 75;
-    //     scene.add( kmz.scene );
-    //     render();
-    //
-    // } );
+    /// == This loads the model in 4 different times. This is bad and inefficient.. A better way would be to clone the scene
+    // which kmzLoader creates, but as far as I know, it's not possible to do this.
+
+    kmzLoader.load( './resources/models/houses.kmz', function ( kmz ) {
+
+        //kmz.scene.position.y = 0.5;
+        kmz.scene.rotation.z = 0.5;
+        kmz.scene.position.x = 90;
+        kmz.scene.position.z = 70;
+        scene.add( kmz.scene );
+
+        const house2 = clone(kmz);
+        house2.scene.position.z = -70;
+        render();
+
+    } );
+
+    kmzLoader.load( './resources/models/houses.kmz', function ( kmz ) {
+
+        //kmz.scene.position.y = 0.5;
+        kmz.scene.rotation.z = 0.5;
+        kmz.scene.position.x = 90;
+        kmz.scene.position.z = -70;
+        scene.add( kmz.scene );
+
+        const house2 = clone(kmz);
+        house2.scene.position.z = -70;
+        render();
+
+    } );
+
+    kmzLoader.load( './resources/models/houses.kmz', function ( kmz ) {
+
+        //kmz.scene.position.y = 0.5;
+        kmz.scene.rotation.z = 3.65;
+        kmz.scene.position.x = -90;
+        kmz.scene.position.z = 70;
+        scene.add( kmz.scene );
+
+        const house2 = clone(kmz);
+        house2.scene.position.z = -70;
+        render();
+
+    } );
+
+    kmzLoader.load( './resources/models/houses.kmz', function ( kmz ) {
+
+        //kmz.scene.position.y = 0.5;
+        kmz.scene.rotation.z = 3.65;
+        kmz.scene.position.x = -90;
+        kmz.scene.position.z =- 70;
+        scene.add( kmz.scene );
+
+        const house2 = clone(kmz);
+        house2.scene.position.z = -70;
+        render();
+
+    } );
+
 
     // ///Skybox
     // const skybox = loader.load('./resources/images/skybox.jpg', () => {
