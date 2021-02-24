@@ -3,6 +3,7 @@ import { OrbitControls } from './three/examples/jsm/controls/OrbitControls.js';
 import { Water } from './three/examples/jsm/objects/Water2.js';
 import { KMZLoader } from './three/examples/jsm/loaders/KMZLoader.js';
 import { STLLoader } from "https://threejs.org/examples/jsm/loaders/STLLoader.js";
+import { GUI } from 'https://threejs.org/examples/jsm/libs/dat.gui.module.js';
 
 
 function main() {
@@ -31,8 +32,16 @@ function main() {
 
 
     // Bridge open/close variables
-    var open = false;
+    //var open = false;
     var bridgeY = 0;
+
+    const gui = new GUI();
+  var params = {
+    open: false
+};
+
+gui.add(params, "open").name("brug open");
+gui.open();
 
     //Player movement
     let playerForwardDirection = 0; // -1 is backward, 1 is forward, 0 is neither
@@ -454,7 +463,7 @@ function main() {
 
             this.wielen = null;
 
-            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 3, z -2*dir);
+            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 8, z -2*dir);
             
             this.gewicht.scale.z = 2;
             if(dir == -1){
@@ -466,7 +475,7 @@ function main() {
 
             this.Ndekkabel = new kabel(x + -1.1 * dir, 0, z + 0.9)
             this.Zdekkabel = new kabel(x + -1.1 * dir, 0, z - 0.9)
-            this.setGewichtKabel(3);
+            this.setGewichtKabel(8);
             this.setDekKabel(-1);
         }
 
@@ -495,7 +504,6 @@ function main() {
             this.k.scale.y = top - bottom;
             this.k.position.y = (top - bottom) / 2 + bottom;
         }
-
     }
 
     class PilaarDwarsBalken {
@@ -717,7 +725,7 @@ function main() {
         playerCameraMovement();
 
 
-        if (open == true && bridgeY < openDistance) {
+        if (params["open"] == true && bridgeY < openDistance) {
             bridgeY += timepassed;
             if (bridgeY > openDistance) {
                 bridgeY = openDistance;
@@ -726,7 +734,7 @@ function main() {
             torens.moveWeights(bridgeY);
             torens.moveWheels(-timepassed);
         }
-        if (open == false && bridgeY > 0) {
+        if (params["open"] == false && bridgeY > 0) {
             bridgeY -= timepassed;
             if (bridgeY < 0) {
                 bridgeY = 0;
