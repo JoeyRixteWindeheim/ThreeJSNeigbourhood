@@ -166,11 +166,10 @@ function main() {
 
     //const wheel = new THREE.CylinderGeometry(1.1, 1.1, 0.2, 10);
 
-    const wheel = new THREE.BufferGeometry();
+    let wheel = new THREE.BufferGeometry();
     stlloader.load( 'resources/wheel.stl', function ( geometry ) {
 
-        wheel = geometry;
-
+        torens.setWheels(geometry);
     });
 
     const axel = new THREE.CylinderGeometry(0.2, 0.2, 2.1, 10);
@@ -367,6 +366,9 @@ function main() {
 
     class Brugtoren {
         constructor(x, y, z, dir) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
             this.NOpilaar = makeInstance(pilaar, 0xffffff, x + 0.8, y + 2.5, z - 0.8);
             this.NWpilaar = makeInstance(pilaar, 0xffffff, x - 0.8, y + 2.5, z - 0.8);
             this.ZOpilaar = makeInstance(pilaar, 0xffffff, x + 0.8, y + 2.5, z + 0.8);
@@ -381,7 +383,7 @@ function main() {
 
             this.top2 = makeInstance(CubusTop, 0xffffff, x, 11, z);
 
-            this.wielen = new BrugTorenWielen(x, 11.5, z)
+            this.wielen = null;
 
             this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 0, z -2*dir);
             
@@ -396,6 +398,11 @@ function main() {
             this.Ndekkabel = new kabel(x + -1.1 * dir, 0, z + 0.9)
             this.Zdekkabel = new kabel(x + -1.1 * dir, 0, z - 0.9)
 
+        }
+
+        setWheels(geometry)
+        {
+            this.wielen = new BrugTorenWielen(this.x, 11.5, this.z,geometry);
         }
 
         setGewichtKabel(bottom) {
@@ -450,28 +457,48 @@ function main() {
     }
 
     class BrugTorenWielen {
-        constructor(x, y, z) {
-            this.links = makeInstance(wheel, 0xffff00, x, y, z - 0.9);
-            this.rechts = makeInstance(wheel, 0xffff00, x, y, z + 0.9);
+        constructor(x, y, z,geometry) {
+            this.material =  new THREE.MeshBasicMaterial( {color: "yellow"} );
+
+            this.links = makeInstanceWithTexture(geometry,this.material , x, y, z - 1);
+            this.rechts = makeInstanceWithTexture(geometry, this.material, x, y, z + 1);
+            this.scale = 0.014;
+            this.links.scale.x = this.scale;
+            this.links.scale.y = this.scale;
+            this.links.scale.z = this.scale;
+            this.rechts.scale.x = this.scale;
+            this.rechts.scale.y = this.scale;
+            this.rechts.scale.z = this.scale;
+
             this.as = makeInstance(axel, 0x000000,x,y,z);
-            this.links.rotateX(1.5708);
-            this.rechts.rotateX(1.5708);
+            this.rechts.rotateY(Math.PI);
             this.as.rotateX(1.5708);
         }
 
         Rotate(time) {
-            this.links.rotateY(time);
-            this.rechts.rotateY(time);
+            this.links.rotateZ(time);   //rotation.z = this.links.rotation.z+ time;
+            this.rechts.rotateZ(-time);   //rotation.z =  this.rechts.rotation.z+ time;
             this.as.rotateY(time);
         }
     }
 
     class Torens {
         constructor() {
+            this.wheelsexist = false;
             this.noToren = new Brugtoren(16, 0, -11, 1);
             this.nwToren = new Brugtoren(-16, 0, -11, -1);
             this.zoToren = new Brugtoren(16, 0, 11, 1);
             this.zwToren = new Brugtoren(-16, 0, 11, -1);
+            
+        }
+
+        setWheels(geometry)
+        {
+            this.noToren.setWheels(geometry);
+            this.nwToren.setWheels(geometry);
+            this.zoToren.setWheels(geometry);
+            this.zwToren.setWheels(geometry);
+            this.wheelsexist = true;
         }
 
         moveWeights(y) {
@@ -492,10 +519,13 @@ function main() {
         }
 
         moveWheels(time) {
+            if(this.wheelsexist){
+               
             this.noToren.wielen.Rotate(time);
             this.nwToren.wielen.Rotate(-time);
             this.zoToren.wielen.Rotate(time);
-            this.zwToren.wielen.Rotate(-time);
+            this.zwToren.wielen.Rotate(-time); 
+        }
         }
     }
 
