@@ -1,6 +1,7 @@
 import * as THREE from './three/build/three.module.js';
 import { OrbitControls } from './three/examples/jsm/controls/OrbitControls.js';
 import { Water } from './three/examples/jsm/objects/Water2.js';
+import { STLLoader } from "https://threejs.org/examples/jsm/loaders/STLLoader.js";
 
 function main() {
     const canvas = document.querySelector('#mainCanvas');
@@ -18,6 +19,7 @@ function main() {
     canvas.parentElement.addEventListener('keydown', onKeypress);
 
     const scene = new THREE.Scene();
+    const stlloader = new STLLoader();
 
 
 
@@ -158,10 +160,20 @@ function main() {
 
     const pilaar = new THREE.BoxGeometry(0.4, 15, 0.4);
     const dwarsbalk = new THREE.BoxGeometry(0.4, 0.4, 1.2);
-
+    const PyramideTop = new THREE.ConeGeometry( 1.41421356237, 1.5, 4 );
+    const CubusTop = new THREE.BoxGeometry(0.8, 2, 0.8);
     //const gewicht = new THREE.BoxGeometry(2, 2, 4);
 
-    const wheel = new THREE.CylinderGeometry(1.1, 1.1, 0.2, 10);
+    //const wheel = new THREE.CylinderGeometry(1.1, 1.1, 0.2, 10);
+
+    const wheel = new THREE.BufferGeometry();
+    stlloader.load( 'resources/wheel.stl', function ( geometry ) {
+
+        wheel = geometry;
+
+    });
+
+    const axel = new THREE.CylinderGeometry(0.2, 0.2, 2.1, 10);
 
     const cabel = new THREE.CylinderGeometry(0.05, 0.05, 1, 6);
 
@@ -271,7 +283,12 @@ function main() {
             this.dwarsMiden = new PilaarDwarsBalken(x, 6.25, z);
             this.dwarsBoven = new PilaarDwarsBalken(x, 9.8, z);
 
-            this.wielen = new BrugTorenWielen(x, 11.2, z)
+            this.top = makeInstance(PyramideTop, 0xffffff, x, 10.75, z);
+            this.top.rotateY(Math.PI/4);
+
+            this.top2 = makeInstance(CubusTop, 0xffffff, x, 11, z);
+
+            this.wielen = new BrugTorenWielen(x, 11.5, z)
 
             this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 0, z -2*dir);
             
@@ -289,13 +306,13 @@ function main() {
         }
 
         setGewichtKabel(bottom) {
-            this.Ngewichtkabel.setLength(11.2, bottom);
-            this.Zgewichtkabel.setLength(11.2, bottom);
+            this.Ngewichtkabel.setLength(11.5, bottom);
+            this.Zgewichtkabel.setLength(11.5, bottom);
         }
 
         setDekKabel(bottom) {
-            this.Ndekkabel.setLength(11.2, bottom);
-            this.Zdekkabel.setLength(11.2, bottom);
+            this.Ndekkabel.setLength(11.5, bottom);
+            this.Zdekkabel.setLength(11.5, bottom);
         }
     }
 
@@ -341,16 +358,18 @@ function main() {
 
     class BrugTorenWielen {
         constructor(x, y, z) {
-            this.links = makeInstance(wheel, 0xffff00, x, 11.2, z - 0.9);
-            this.rechts = makeInstance(wheel, 0xffff00, x, 11.2, z + 0.9);
+            this.links = makeInstance(wheel, 0xffff00, x, y, z - 0.9);
+            this.rechts = makeInstance(wheel, 0xffff00, x, y, z + 0.9);
+            this.as = makeInstance(axel, 0x000000,x,y,z);
             this.links.rotateX(1.5708);
             this.rechts.rotateX(1.5708);
-
+            this.as.rotateX(1.5708);
         }
 
         Rotate(time) {
             this.links.rotateY(time);
-            this.rechts.rotateY(time)
+            this.rechts.rotateY(time);
+            this.as.rotateY(time);
         }
     }
 
