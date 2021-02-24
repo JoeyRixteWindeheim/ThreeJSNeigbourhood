@@ -198,6 +198,8 @@ function main() {
     //const sidewalk = new THREE.BoxGeometry(30, 0.2, 2);
     const sidewalkRailer = new THREE.BoxGeometry(30, 1, 0.1);
 
+    const kade = new THREE.BoxGeometry(30, 10, 284);
+
     const pilaar = new THREE.BoxGeometry(0.4, 15, 0.4);
     const dwarsbalk = new THREE.BoxGeometry(0.4, 0.4, 1.2);
     const PyramideTop = new THREE.ConeGeometry( 1.41421356237, 1.5, 4 );
@@ -644,7 +646,8 @@ function main() {
     const BetonPilaarLinks = new BetonPilaar(-16);
     const BetonPilaarRechts = new BetonPilaar(16);
     //const gewichten = new Bruggewichten();
-
+    const kadeLinks = makeInstanceWithTexture(kade,concreteMaterial,60,-5,0);
+    const kadeRechts = makeInstanceWithTexture(kade,concreteMaterial,-60,-5,0);
 
 
     const openDistance = 5;
