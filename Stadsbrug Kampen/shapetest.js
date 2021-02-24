@@ -1,10 +1,16 @@
 import * as THREE from './three/build/three.module.js';
-import { STLLoader } from "https://threejs.org/examples/jsm/loaders/STLLoader.js";;
+import { STLLoader } from "https://threejs.org/examples/jsm/loaders/STLLoader.js";
+import { GUI } from 'https://threejs.org/examples/jsm/libs/dat.gui.module.js';
 
 function main() {
   const canvas = document.querySelector('#mainCanvas');
   const renderer = new THREE.WebGLRenderer({canvas});
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var open = false;
+  
+  //bridgeFolder.open();
+
 
   const fov = 75;
   const aspect = 2;  // the canvas default

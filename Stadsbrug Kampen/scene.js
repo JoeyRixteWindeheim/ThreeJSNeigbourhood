@@ -3,6 +3,7 @@ import { OrbitControls } from './three/examples/jsm/controls/OrbitControls.js';
 import { Water } from './three/examples/jsm/objects/Water2.js';
 import { KMZLoader } from './three/examples/jsm/loaders/KMZLoader.js';
 import { STLLoader } from "https://threejs.org/examples/jsm/loaders/STLLoader.js";
+import { GUI } from 'https://threejs.org/examples/jsm/libs/dat.gui.module.js';
 
 
 function main() {
@@ -31,8 +32,15 @@ function main() {
 
 
     // Bridge open/close variables
-    var open = false;
     var bridgeY = 0;
+
+    const gui = new GUI();
+    var params = {
+        open: false
+    };
+
+    gui.add(params, "open").name("brug open");
+    gui.open();
 
     //Player movement
     let playerForwardDirection = 0; // -1 is backward, 1 is forward, 0 is neither
@@ -174,11 +182,9 @@ function main() {
         //kmz.scene.position.y = 0.5;
         kmz.scene.rotation.z = 0.5;
         kmz.scene.position.x = 90;
-        kmz.scene.position.z = 70;
+        kmz.scene.position.z = 60;
         scene.add( kmz.scene );
 
-        const house2 = clone(kmz);
-        house2.scene.position.z = -70;
         render();
 
     } );
@@ -188,11 +194,11 @@ function main() {
         //kmz.scene.position.y = 0.5;
         kmz.scene.rotation.z = 0.5;
         kmz.scene.position.x = 90;
-        kmz.scene.position.z = -70;
+        kmz.scene.position.z = -30;
         scene.add( kmz.scene );
 
-        const house2 = clone(kmz);
-        house2.scene.position.z = -70;
+
+
         render();
 
     } );
@@ -202,11 +208,9 @@ function main() {
         //kmz.scene.position.y = 0.5;
         kmz.scene.rotation.z = 3.65;
         kmz.scene.position.x = -90;
-        kmz.scene.position.z = 70;
+        kmz.scene.position.z = 40;
         scene.add( kmz.scene );
 
-        const house2 = clone(kmz);
-        house2.scene.position.z = -70;
         render();
 
     } );
@@ -216,11 +220,9 @@ function main() {
         //kmz.scene.position.y = 0.5;
         kmz.scene.rotation.z = 3.65;
         kmz.scene.position.x = -90;
-        kmz.scene.position.z =- 70;
+        kmz.scene.position.z = -50;
         scene.add( kmz.scene );
 
-        const house2 = clone(kmz);
-        house2.scene.position.z = -70;
         render();
 
     } );
@@ -247,6 +249,8 @@ function main() {
     const RoadRailingTop = new THREE.CylinderGeometry(0.1, 0.1, 30, 10);
     //const sidewalk = new THREE.BoxGeometry(30, 0.2, 2);
     const sidewalkRailer = new THREE.BoxGeometry(30, 1, 0.1);
+
+    const kade = new THREE.BoxGeometry(30, 10, 284);
 
     const pilaar = new THREE.BoxGeometry(0.4, 15, 0.4);
     const dwarsbalk = new THREE.BoxGeometry(0.4, 0.4, 1.2);
@@ -475,9 +479,7 @@ function main() {
 
                 ];
             return roadMaterials;
-        }
-
-        
+        } 
 
 
 
@@ -504,19 +506,20 @@ function main() {
 
             this.wielen = null;
 
-            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 0, z -2*dir);
+            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 8, z -2*dir);
             
             this.gewicht.scale.z = 2;
             if(dir == -1){
                 this.gewicht.rotateY(Math.PI);
             }
 
-            this.Ngewichtkabel = new kabel(x + 1.1 * dir, 0, z + 0.9)
+            this.Ngewichtkabel = new kabel(x + 1.1 * dir, 0 , z + 0.9)
             this.Zgewichtkabel = new kabel(x + 1.1 * dir, 0, z - 0.9)
 
             this.Ndekkabel = new kabel(x + -1.1 * dir, 0, z + 0.9)
             this.Zdekkabel = new kabel(x + -1.1 * dir, 0, z - 0.9)
-
+            this.setGewichtKabel(8);
+            this.setDekKabel(-1);
         }
 
         setWheels(geometry)
@@ -544,7 +547,6 @@ function main() {
             this.k.scale.y = top - bottom;
             this.k.position.y = (top - bottom) / 2 + bottom;
         }
-
     }
 
     class PilaarDwarsBalken {
@@ -694,7 +696,8 @@ function main() {
     const BetonPilaarLinks = new BetonPilaar(-16);
     const BetonPilaarRechts = new BetonPilaar(16);
     //const gewichten = new Bruggewichten();
-
+    const kadeLinks = makeInstanceWithTexture(kade,concreteMaterial,60,-5,0);
+    const kadeRechts = makeInstanceWithTexture(kade,concreteMaterial,-60,-5,0);
 
 
     const openDistance = 5;
@@ -765,7 +768,7 @@ function main() {
         playerCameraMovement();
 
 
-        if (open == true && bridgeY < openDistance) {
+        if (params["open"] == true && bridgeY < openDistance) {
             bridgeY += timepassed;
             if (bridgeY > openDistance) {
                 bridgeY = openDistance;
@@ -774,7 +777,7 @@ function main() {
             torens.moveWeights(bridgeY);
             torens.moveWheels(-timepassed);
         }
-        if (open == false && bridgeY > 0) {
+        if (params["open"] == false && bridgeY > 0) {
             bridgeY -= timepassed;
             if (bridgeY < 0) {
                 bridgeY = 0;
