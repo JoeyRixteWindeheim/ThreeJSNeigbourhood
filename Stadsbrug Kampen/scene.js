@@ -31,7 +31,7 @@ function main() {
 
 
     // Bridge open/close variables
-    var open = true;
+    var open = false;
     var bridgeY = 0;
 
     //Player movement
@@ -427,9 +427,7 @@ function main() {
 
                 ];
             return roadMaterials;
-        }
-
-        
+        } 
 
 
 
@@ -456,19 +454,20 @@ function main() {
 
             this.wielen = null;
 
-            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 0, z -2*dir);
+            this.gewicht = makeInstance(gewicht, 0xffffff, x + 2 * dir - 1*dir, 3, z -2*dir);
             
             this.gewicht.scale.z = 2;
             if(dir == -1){
                 this.gewicht.rotateY(Math.PI);
             }
 
-            this.Ngewichtkabel = new kabel(x + 1.1 * dir, 0, z + 0.9)
+            this.Ngewichtkabel = new kabel(x + 1.1 * dir, 0 , z + 0.9)
             this.Zgewichtkabel = new kabel(x + 1.1 * dir, 0, z - 0.9)
 
             this.Ndekkabel = new kabel(x + -1.1 * dir, 0, z + 0.9)
             this.Zdekkabel = new kabel(x + -1.1 * dir, 0, z - 0.9)
-
+            this.setGewichtKabel(3);
+            this.setDekKabel(-1);
         }
 
         setWheels(geometry)
