@@ -55,12 +55,12 @@ gui.open();
         // o = open, c = close
         if (e.code == "KeyO") //o
         {
-            open = true;
+            params["open"] = true;
             //open
         }
         if (e.code == "KeyC") //c
         {
-            open = false;
+            params["open"] = false;
             //close
         }
 
